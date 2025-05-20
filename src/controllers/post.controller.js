@@ -1,12 +1,12 @@
-import UserModel from "../models/userModel.js";
+import PostModel from "../models/post.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-class AuthController {
-  // Listar todos os auths
+class PostController {
+  // Listar todos os posts
   async getAllUsers( res ) {
     try {
-      const users = await UserModel.findAll();
+      const posts = await PostModel.findAll();
       res.json(users);
     } catch (error) {
       console.error("Erro ao listar usuários:", error);
@@ -14,41 +14,43 @@ class AuthController {
     }
   }
 
-  // Registrar novo auth
+  // Registrar novo post
   async register(req, res) {
     try {
-      const { name, username, email, password } = req.body;
+      const { userId, content, type, visibility, workoutId, mediaUrl } = req.body;
 
       // Validação básica
-      if (!name || !username || !email || !password) {
+      if (!userId || !content || !type || !visibility || !workoutId || !mediaUrl) {
         return res.status(400).json({
-          error: "Os campos nome, username, email e senha são obrigatórios!",
+          error: "Os campos userId, content, type, visibility, workoutId e mediaUrl são obrigatórios!",
         });
       }
 
-      // Verificar se o auth já existe
-      const userEmailExists = await UserModel.findByEmail(email);
-      if (userEmailExists) {
-        return res.status(400).json({ error: "Este email já está em uso!" });
+      // Verificar se o post já existe
+      const userUserIdExists = await UserModel.findByUserId(userId);
+      if (userUserIdExists) {
+        return res.status(400).json({ error: "Este userId já está em uso!" });
       }
 
-      const userNameExists = await UserModel.findByUsername(username);
-      if (userNameExists) {
-        return res.status(400).json({ error: "Este username já está em uso!" });
+      const userContentExists = await UserModel.findByContent(content);
+      if (userContentExists) {
+        return res.status(400).json({ error: "Este content já está em uso!" });
       }
 
       // Hash da senha
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Criar objeto do auth
+      // Criar objeto do post
       const data = {
-        name,
-        username,
-        email,
-        password: hashedPassword,
+        id: userId,
+        content,
+        type,
+        visibility,
+        workoutId,
+        mediaUrl,
       };
 
-      // Criar auth
+      // Criar post
       const user = await UserModel.create(data);
 
       return res.status(201).json({
@@ -72,7 +74,7 @@ class AuthController {
           .json({ error: "Os campos email e senha são obrigatórios!" });
       }
 
-      // Verificar se o auth existe
+      // Verificar se o post existe
       const userExists = await UserModel.findByEmail(email);
       if (!userExists) {
         return res.status(401).json({ error: "Credenciais inválidas!" });
@@ -91,9 +93,12 @@ class AuthController {
       const token = jwt.sign(
         {
           id: userExists.id,
-          name: userExists.name,
-          username: userExists.username,
-          email: userExists.email,
+          userId: userExists.userId,
+          content: userExists.content,
+          type: userExists.type,
+          visibility: userExists.visibility,
+          workoutId: userExists.workoutId,
+          mediaUrl: userExists.mediaUrl,
         },
         process.env.JWT_SECRET,
         {
@@ -113,4 +118,4 @@ class AuthController {
   }
 }
 
-export default new AuthController();
+export default new PostController();

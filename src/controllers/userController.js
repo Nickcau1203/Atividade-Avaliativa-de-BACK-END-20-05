@@ -2,8 +2,8 @@ import UserModel from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-class AuthController {
-  // Listar todos os auths
+class UserController {
+  // Listar todos os usuários
   async getAllUsers( res ) {
     try {
       const users = await UserModel.findAll();
@@ -14,19 +14,19 @@ class AuthController {
     }
   }
 
-  // Registrar novo auth
+  // Registrar novo usuário
   async register(req, res) {
     try {
-      const { name, username, email, password } = req.body;
+      const { username, email, password, userType, profilePhoto, bio } = req.body;
 
       // Validação básica
-      if (!name || !username || !email || !password) {
+      if ( !username || !email || !password || !userType || !profilePhoto || !bio ) {
         return res.status(400).json({
-          error: "Os campos nome, username, email e senha são obrigatórios!",
+          error: "Os campos username, email, password, userType, profilePhoto e bio são obrigatórios!",
         });
       }
 
-      // Verificar se o auth já existe
+      // Verificar se o usuário já existe
       const userEmailExists = await UserModel.findByEmail(email);
       if (userEmailExists) {
         return res.status(400).json({ error: "Este email já está em uso!" });
@@ -40,15 +40,17 @@ class AuthController {
       // Hash da senha
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Criar objeto do auth
+      // Criar objeto do usuário
       const data = {
-        name,
         username,
         email,
         password: hashedPassword,
+        userType,
+        profilePhoto,
+        bio,
       };
 
-      // Criar auth
+      // Criar usuário
       const user = await UserModel.create(data);
 
       return res.status(201).json({
@@ -63,16 +65,16 @@ class AuthController {
 
   async login(req, res) {
     try {
-      const { email, password } = req.body;
+      const { email, password, username, userType, profilePhoto, bio } = req.body;
 
       // Validação básica
-      if (!email || !password) {
+      if  ( !email || !password || !username || !userType || !profilePhoto || !bio ) {
         return res
           .status(400)
-          .json({ error: "Os campos email e senha são obrigatórios!" });
+          .json({ error: "Os campos email, senha, username são obrigatórios!" });
       }
 
-      // Verificar se o auth existe
+      // Verificar se o usuário existe
       const userExists = await UserModel.findByEmail(email);
       if (!userExists) {
         return res.status(401).json({ error: "Credenciais inválidas!" });
@@ -91,9 +93,9 @@ class AuthController {
       const token = jwt.sign(
         {
           id: userExists.id,
-          name: userExists.name,
           username: userExists.username,
           email: userExists.email,
+          password: userExists.password,
         },
         process.env.JWT_SECRET,
         {
@@ -113,4 +115,4 @@ class AuthController {
   }
 }
 
-export default new AuthController();
+export default new UserController();

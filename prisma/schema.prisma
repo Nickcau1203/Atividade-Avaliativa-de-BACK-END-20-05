@@ -15,47 +15,54 @@ datasource db {
 
 model User {
   id       Int    @id @default(autoincrement())
-  name     String
-  nickname String @unique
+  username String @unique
   email    String @unique
   password String
+  userType String 
+  profilePhoto String ?
+  bio String ?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  records Record[]
 
   @@map("users")
 }
 
-model Record {
-  id         String @id @default(cuid())
-  userId     Int
-  score      Int
-  screenshot String
-  gameId     String
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+model Profile {
+   id       Int    @id @default(autoincrement())
+   userId   Int 
+   height   Int
+   weight   Int
+   fitnessLevel String
+   birthDate String ?
+   goals String ?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@map("records")
+}
+ 
+model Workout {
+   id       Int    @id @default(autoincrement())
+   userId   Int
+   title    String
+   type     String
+   duration Int
+   notes    String ?
+   location String ?
+   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Game {
-  id       String @id @default(uuid())
-  name     String
-  platform String
-
-  // Relations
-  records Record[]
+model Post {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  content  String 
+  type     String
+  visibility String 
+  workoutId String ?
+  mediaUrl String ?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@map("games")
 }

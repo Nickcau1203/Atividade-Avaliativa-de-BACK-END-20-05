@@ -1,9 +1,9 @@
-import UserModel from "../models/userModel.js";
+import UserModel from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-class AuthController {
-  // Listar todos os auths
+class WorkoutController {
+  // Listar todos os workouts
   async getAllUsers( res ) {
     try {
       const users = await UserModel.findAll();
@@ -14,19 +14,18 @@ class AuthController {
     }
   }
 
-  // Registrar novo auth
-  async register(req, res) {
+  // Registrar novo workout
+  async register( res) {
     try {
-      const { name, username, email, password } = req.body;
-
+      const { userId, title, type, duration, notes, location } = req.body;
       // Validação básica
-      if (!name || !username || !email || !password) {
+      if ( !userId || !title || !type || !duration || !notes || !location ) {
         return res.status(400).json({
-          error: "Os campos nome, username, email e senha são obrigatórios!",
+          error: "Os campos userId, title, type, duration, notes e location são obrigatórios!",
         });
       }
 
-      // Verificar se o auth já existe
+      // Verificar se o workout já existe
       const userEmailExists = await UserModel.findByEmail(email);
       if (userEmailExists) {
         return res.status(400).json({ error: "Este email já está em uso!" });
@@ -40,15 +39,17 @@ class AuthController {
       // Hash da senha
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Criar objeto do auth
+      // Criar objeto do workout
       const data = {
-        name,
-        username,
-        email,
-        password: hashedPassword,
+        userId,
+        title,
+        type,
+        duration,
+        notes,
+        location,
       };
 
-      // Criar auth
+      // Criar workout
       const user = await UserModel.create(data);
 
       return res.status(201).json({
@@ -72,7 +73,7 @@ class AuthController {
           .json({ error: "Os campos email e senha são obrigatórios!" });
       }
 
-      // Verificar se o auth existe
+      // Verificar se o workout existe
       const userExists = await UserModel.findByEmail(email);
       if (!userExists) {
         return res.status(401).json({ error: "Credenciais inválidas!" });
@@ -90,10 +91,12 @@ class AuthController {
       // Gerar Token JWT
       const token = jwt.sign(
         {
-          id: userExists.id,
-          name: userExists.name,
-          username: userExists.username,
-          email: userExists.email,
+          userId: userExists.userId,
+          userTitle: userExists.userTitle,
+          userType: userExists.userType,
+          userDuration: userExists.userDuration,
+          userNotes: userExists.userNotes,
+          userLocation: userExists.userLocation,
         },
         process.env.JWT_SECRET,
         {
@@ -113,4 +116,4 @@ class AuthController {
   }
 }
 
-export default new AuthController();
+export default new WorkoutController();
